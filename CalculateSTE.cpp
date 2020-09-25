@@ -2,14 +2,13 @@
 #include<string>
 #include<fstream>
 #include<vector>
+
+#define W_SIZE 320
+
 using namespace std;
 
 int main()
 {
-	/*ofstream myfile;
-	myfile.open ("OutputSilence.txt");
-	myfile << "Writing this to a file.\n";
-	myfile.close();*/
 	ifstream infile;
 	ofstream outfile;
 	ofstream outfile1;
@@ -18,93 +17,68 @@ int main()
 	outfile1.open("extractYes.txt");
 	if(infile.is_open())
 	{
-		cout << "entered file" <<endl;
-		int sn=0;
-		int flag=0;
+		int windowNumber=0;
+		int WordStarted=0;
 		while(!infile.eof())
 		{
-			int no=0;
-			double sumsq=0;
-			//double si=0;
-			vector<double> vec;
-			while(no<320 && !infile.eof())
+			double meanSqWindow=0;
+			vector<double> WindowSamples;
+
+			while(WindowSamples.size()<320 && !infile.eof())
 			{
-				int a;
-				infile >> a;
-				vec.push_back(a);
-				sumsq += (a*a)/320.0;
-				no++;
+				int sampleValue;
+				infile >> sampleValue;
+				WindowSamples.push_back(sampleValue);
+				meanSqWindow += (sampleValue*sampleValue)/320.0;
 			}
-			if(no<320)
+
+			int currWsize = WindowSamples.size();
+			if(currWsize<320)
 			{
-				if(flag==1)
+				if(WordStarted==1)
 				{
-					for(int a=0;a<vec.size();a++)
+					for(int i=0;i<currWsize;i++)
 					{
-						outfile1 << vec[a] << endl;
+						outfile1 << WindowSamples[i] << endl;
 					}
-					flag=0;
+					WordStarted=0;
 					outfile<< "yes ended" << endl;
 				}
 				break;
 			}
 			else
 			{
-				if(flag==0)
+				if(WordStarted==0)
 				{
-					if(sumsq>3000)
+					if(meanSqWindow>3000)
 					{
-						//int a=0;
-						/*int tempsize=vec.size();
-						int starti=0;
-						int endi =0;
-						while(a<tempsize)
-						{
-							double hsumsq = 0;
-							starti =a;
-							endi = a+20;
-							for(int b=starti;b<endi;b++)
-							{
-								hsumsq += vec[b]*vec[b];
-							}
-							a += 20;
-							if(hsumsq>3000)
-							{
-								break;
-							}
-						}*/
+
 						outfile<< "yes started" << endl;
-						/*while(starti<tempsize)
+						WordStarted=1;
+						for(int i=0;i<currWsize;i++)
 						{
-							outfile1 << vec[starti] << endl;
-							starti++;
-						}*/
-						flag=1;
-						for(int a=0;a<vec.size();a++)
-						{
-							outfile1 << vec[a] << endl;
+							outfile1 << WindowSamples[i] << endl;
 						}	
 					}
 				}
 				else
 				{
-					if(sumsq<3000)
+					if(meanSqWindow<3000)
 					{
-						flag=0;
+						WordStarted=0;
 						outfile<< "yes ended" << endl;
 					}
 					else
 					{
-						for(int a=0;a<vec.size();a++)
+						for(int i=0;i<currWsize;i++)
 						{
-							outfile1 << vec[a] << endl;
+							outfile1 << WindowSamples[i] << endl;
 						}
 					}
 				}
-				sn++;
-				outfile << sn << "th window:- " << sumsq << endl;
-				//si += 320;
-				vec.clear();
+				windowNumber++;
+				outfile << windowNumber << "th window:- " << meanSqWindow << endl;
+				WindowSamples.clear();
 			}
 		}
 		infile.close();

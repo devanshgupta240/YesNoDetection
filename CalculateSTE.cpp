@@ -4,6 +4,8 @@
 #include<vector>
 
 #define W_SIZE 320
+#define P_W_SIZE 320
+#define SILENCE_STE 3000
 
 using namespace std;
 
@@ -33,57 +35,170 @@ int main()
 			}
 
 			int currWsize = WindowSamples.size();
+
 			if(currWsize<320)
 			{
+
 				if(WordStarted==1)
 				{
-					for(int i=0;i<currWsize;i++)
+
+					int sampleNumberWindow=0;
+					int startPreciseW = sampleNumberWindow;
+					int endPreciseW = sampleNumberWindow + 20;
+					double meanSqPrecise=0;
+
+					while(sampleNumberWindow < currWsize)
+					{
+						startPreciseW = sampleNumberWindow;
+						endPreciseW = sampleNumberWindow + 20;
+						meanSqPrecise=0;
+
+						for(int i= startPreciseW; i<endPreciseW; i++)
+						{
+							meanSqPrecise += (WindowSamples[i]*WindowSamples[i])/20.0;
+						}
+
+						sampleNumberWindow += 20;
+
+						if(meanSqPrecise<3000)
+						{
+							break;
+						}
+
+					}
+
+					for(int i= 0; i<startPreciseW; i++)
 					{
 						outfile1 << WindowSamples[i] << endl;
 					}
+
+
+					/*for(int i=0;i<currWsize;i++)
+					{
+						outfile1 << WindowSamples[i] << endl;
+					}*/
+
 					WordStarted=0;
 					outfile<< "yes ended" << endl;
 				}
+
 				break;
 			}
 			else
 			{
+
 				if(WordStarted==0)
 				{
+
 					if(meanSqWindow>3000)
 					{
 
-						outfile<< "yes started" << endl;
-						WordStarted=1;
-						for(int i=0;i<currWsize;i++)
+						//Refining data
+					
+						int sampleNumberWindow=0;
+						int startPreciseW = sampleNumberWindow;
+						int endPreciseW = sampleNumberWindow + 20;
+
+						while(sampleNumberWindow < currWsize)
+						{
+							startPreciseW = sampleNumberWindow;
+							endPreciseW = sampleNumberWindow + 20;
+							double meanSqPrecise=0;
+
+							for(int i= startPreciseW; i<endPreciseW; i++)
+							{
+								meanSqPrecise += (WindowSamples[i]*WindowSamples[i])/20.0;
+							}
+
+							sampleNumberWindow += 20;
+
+							if(meanSqPrecise>3000)
+							{
+								break;
+							}
+
+						}
+
+						for(int i= startPreciseW; i<currWsize; i++)
 						{
 							outfile1 << WindowSamples[i] << endl;
-						}	
+						}
+
+						outfile<< "yes started" << endl;
+						WordStarted=1;
+
+						/*for(int i=0;i<currWsize;i++)
+						{
+							outfile1 << WindowSamples[i] << endl;
+						}*/
+
 					}
 				}
+
 				else
 				{
+
 					if(meanSqWindow<3000)
 					{
+
+						int sampleNumberWindow=0;
+						int startPreciseW = sampleNumberWindow;
+						int endPreciseW = sampleNumberWindow + 20;
+						double meanSqPrecise=0;
+
+						while(sampleNumberWindow < currWsize)
+						{
+							startPreciseW = sampleNumberWindow;
+							endPreciseW = sampleNumberWindow + 20;
+							meanSqPrecise=0;
+
+							for(int i= startPreciseW; i<endPreciseW; i++)
+							{
+								meanSqPrecise += (WindowSamples[i]*WindowSamples[i])/20.0;
+							}
+
+							sampleNumberWindow += 20;
+
+							if(meanSqPrecise<3000)
+							{
+								break;
+							}
+
+						}
+
+						for(int i= 0; i<startPreciseW; i++)
+						{
+							outfile1 << WindowSamples[i] << endl;
+						}
+
 						WordStarted=0;
 						outfile<< "yes ended" << endl;
+
 					}
+
 					else
 					{
+
 						for(int i=0;i<currWsize;i++)
 						{
 							outfile1 << WindowSamples[i] << endl;
 						}
+
 					}
 				}
+
 				windowNumber++;
 				outfile << windowNumber << "th window:- " << meanSqWindow << endl;
 				WindowSamples.clear();
+
 			}
+
 		}
+
 		infile.close();
 		outfile.close();
 		outfile1.close();
+
 	}
 	return 0;
 }
